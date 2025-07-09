@@ -9,9 +9,8 @@ import { Layers, Map, Satellite, AlertTriangle } from "lucide-react"
 interface MapControlPanelProps {
   layers: {
     floodZones: boolean
-    buildings: boolean
   }
-  onLayerChange: (layers: { floodZones: boolean; buildings: boolean }) => void
+  onLayerChange: (layers: { floodZones: boolean }) => void
   basemap: "light" | "satellite"
   onBasemapChange: (basemap: "light" | "satellite") => void
 }
@@ -94,49 +93,23 @@ export default function MapControlPanel({ layers, onLayerChange, basemap, onBase
                 <div className="flex items-center gap-3 text-xs">
                   <div
                     className="w-4 h-3 rounded-sm border"
-                    style={{ backgroundColor: "hsla(221, 83%, 85%, 0.8)" }}
+                    style={{ backgroundColor: "hsla(221, 83%, 25%, 0.7)" }}
                   ></div>
-                  <span>Muy baja a nula</span>
+                  <span>Alta</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
                   <div
                     className="w-4 h-3 rounded-sm border"
-                    style={{ backgroundColor: "hsla(221, 83%, 65%, 0.8)" }}
-                  ></div>
-                  <span>Baja</span>
-                </div>
-                <div className="flex items-center gap-3 text-xs">
-                  <div
-                    className="w-4 h-3 rounded-sm border"
-                    style={{ backgroundColor: "hsla(221, 83%, 45%, 0.8)" }}
+                    style={{ backgroundColor: "hsla(221, 83%, 45%, 0.7)" }}
                   ></div>
                   <span>Media</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
                   <div
                     className="w-4 h-3 rounded-sm border"
-                    style={{ backgroundColor: "hsla(221, 83%, 25%, 0.8)" }}
+                    style={{ backgroundColor: "hsla(221, 83%, 65%, 0.7)" }}
                   ></div>
-                  <span>Alta</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Buildings */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium cursor-pointer">Edificios</label>
-              <Switch checked={layers.buildings} onCheckedChange={() => toggleLayer("buildings")} />
-            </div>
-
-            {layers.buildings && (
-              <div className="pl-4 border-l-2 border-gray-100">
-                <div className="flex items-center gap-3 text-xs">
-                  <div className="w-4 h-3 rounded-sm bg-gray-300 border border-gray-400"></div>
-                  <span>Huellas de Edificios</span>
+                  <span>Baja</span>
                 </div>
               </div>
             )}

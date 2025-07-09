@@ -52,7 +52,6 @@ const config: Config = {
           medium: "hsl(var(--flood-medium))",
           high: "hsl(var(--flood-high))",
         },
-        buildings: "hsl(var(--buildings))",
       },
     },
   },

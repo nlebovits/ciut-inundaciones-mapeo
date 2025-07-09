@@ -5,7 +5,7 @@ import dynamic from "next/dynamic"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Info, Menu, X, Plus, Minus } from "lucide-react"
-import Joyride, { type CallBackProps, STATUS, type Step } from "react-joyride"
+import { type CallBackProps, STATUS, type Step } from "react-joyride"
 import MapControlPanel from "./MapControlPanel"
 
 // Dynamically import the map to avoid SSR issues
@@ -19,6 +19,11 @@ const FloodMap = dynamic(() => import("./FloodMap"), {
       </div>
     </div>
   ),
+})
+
+// Dynamically import Joyride to avoid SSR issues
+const Joyride = dynamic(() => import("react-joyride"), {
+  ssr: false,
 })
 
 const tutorialSteps: Step[] = [
@@ -75,7 +80,6 @@ export default function FloodDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [layers, setLayers] = useState({
     floodZones: true,
-    buildings: true,
   })
   const [basemap, setBasemap] = useState<"light" | "satellite">("light")
   const [mapInstance, setMapInstance] = useState<any>(null)
@@ -87,23 +91,27 @@ export default function FloodDashboard() {
       setRunTutorial(true)
     }
 
-    // Handle mobile sidebar
+    // Handle mobile sidebar - delay to avoid hydration issues
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false)
-      } else {
-        setSidebarOpen(true)
-      }
+      const newSidebarState = window.innerWidth >= 768
+      setSidebarOpen(newSidebarState)
     }
 
-    handleResize()
+    // Delay the initial resize check to avoid hydration mismatch
+    const timer = setTimeout(() => {
+      handleResize()
+    }, 0)
+
     window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener("resize", handleResize)
+    }
   }, [])
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRunTutorial(false)
       localStorage.setItem("flood-dashboard-tutorial", "true")
     }

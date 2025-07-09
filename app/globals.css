@@ -30,7 +30,6 @@
     --flood-low: 221 83% 65%;
     --flood-medium: 221 83% 45%;
     --flood-high: 221 83% 25%;
-    --buildings: 0 0% 85%;
   }
 }
 
@@ -77,15 +76,51 @@
 @media (max-width: 768px) {
   .sidebar-panel {
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
-    right: 0;
-    top: auto;
-    height: auto;
-    max-height: 50vh;
-    border-right: none;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 16px 16px 0 0;
-    z-index: 1000;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
   }
+
+  .sidebar-panel.open {
+    transform: translateX(0);
+  }
+
+  .map-container {
+    margin-left: 0;
+  }
+}
+
+/* Map controls styling */
+.map-controls {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.map-legend {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-panel::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.sidebar-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { floodZonesData, buildingsData } from "@/lib/dummyData"
+import { Protocol } from "pmtiles"
 
 // Load MapLibre GL dynamically
 declare global {
@@ -13,7 +13,6 @@ declare global {
 interface FloodMapProps {
   layers: {
     floodZones: boolean
-    buildings: boolean
   }
   basemap: "light" | "satellite"
   onMapLoad?: (map: any) => void
@@ -59,51 +58,26 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
   useEffect(() => {
     if (!mapContainer.current || map.current || !mapLibreLoaded || !window.maplibregl) return
 
+    // Register PMTiles protocol
+    try {
+      const protocol = new Protocol()
+      window.maplibregl.addProtocol("pmtiles", protocol.tile)
+      console.log("✅ PMTiles protocol registered successfully")
+    } catch (error) {
+      console.error("❌ Error registering PMTiles protocol:", error)
+    }
+
     // Map styles
     const mapStyles = {
-      light: {
-        version: 8,
-        sources: {
-          "osm-tiles": {
-            type: "raster",
-            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-            tileSize: 256,
-            attribution: "© OpenStreetMap contributors",
-          },
-        },
-        layers: [
-          {
-            id: "osm-tiles",
-            type: "raster",
-            source: "osm-tiles",
-          },
-        ],
-      },
-      satellite: {
-        version: 8,
-        sources: {
-          "satellite-tiles": {
-            type: "raster",
-            tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-            tileSize: 256,
-            attribution: "© Esri, Maxar, Earthstar Geographics",
-          },
-        },
-        layers: [
-          {
-            id: "satellite-tiles",
-            type: "raster",
-            source: "satellite-tiles",
-          },
-        ],
-      },
+      light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+      satellite: "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/arcgis_hybrid.json",
     }
 
     // Initialize map centered on La Plata, Argentina
     map.current = new window.maplibregl.Map({
       container: mapContainer.current,
-      style: mapStyles[basemap],
-      center: [-57.9544, -34.9214], // La Plata coordinates
+      style: typeof mapStyles[basemap] === 'string' ? mapStyles[basemap] : mapStyles[basemap],
+      center: [-58.0044, -34.9614], // Adjusted to match PMTiles bounds
       zoom: 12,
       attributionControl: false,
     })
@@ -129,103 +103,112 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
     map.current.on("load", () => {
       if (!map.current) return
 
-      // Add flood zones source and layer
-      map.current.addSource("flood-zones", {
-        type: "geojson",
-        data: floodZonesData,
-      })
+      console.log("🗺️ Map loaded, adding custom sources and layers...")
 
-      map.current.addLayer({
-        id: "flood-zones-fill",
-        type: "fill",
-        source: "flood-zones",
-        paint: {
-          "fill-color": [
-            "match",
-            ["get", "risk_level"],
-            "muy_baja",
-            "hsla(221, 83%, 85%, 0.6)",
-            "baja",
-            "hsla(221, 83%, 65%, 0.6)",
-            "media",
-            "hsla(221, 83%, 45%, 0.6)",
-            "alta",
-            "hsla(221, 83%, 25%, 0.6)",
-            "hsla(221, 83%, 55%, 0.6)", // default
-          ],
-          "fill-outline-color": [
-            "match",
-            ["get", "risk_level"],
-            "muy_baja",
-            "hsl(221, 83%, 75%)",
-            "baja",
-            "hsl(221, 83%, 55%)",
-            "media",
-            "hsl(221, 83%, 35%)",
-            "alta",
-            "hsl(221, 83%, 15%)",
-            "hsl(221, 83%, 45%)", // default
-          ],
-        },
-      })
-
-      // Add buildings source and layer
-      map.current.addSource("buildings", {
-        type: "geojson",
-        data: buildingsData,
-      })
-
-      map.current.addLayer({
-        id: "buildings-fill",
-        type: "fill",
-        source: "buildings",
-        paint: {
-          "fill-color": "hsl(0, 0%, 85%)",
-          "fill-outline-color": "hsl(0, 0%, 70%)",
-          "fill-opacity": 0.8,
-        },
-      })
-
-      // Add popup on click
-      map.current.on("click", "flood-zones-fill", (e: any) => {
-        if (!e.features || !e.features[0] || !map.current) return
-
-        const feature = e.features[0]
-        const properties = feature.properties
-
-        const riskLabels: Record<string, string> = {
-          muy_baja: "Muy baja a nula",
-          baja: "Baja",
-          media: "Media",
-          alta: "Alta",
+      try {
+        // Ensure PMTiles protocol is registered
+        if (window.maplibregl && !window.maplibregl.getProtocol) {
+          const protocol = new Protocol()
+          window.maplibregl.addProtocol("pmtiles", protocol.tile)
         }
 
-        new window.maplibregl.Popup()
-          .setLngLat(e.lngLat)
-          .setHTML(`
-            <div class="p-3">
-              <h3 class="font-semibold text-sm mb-2">Zona de Riesgo Hídrico</h3>
-              <p class="text-xs mb-1"><strong>Nivel:</strong> ${riskLabels[properties?.risk_level] || "No especificado"}</p>
-              ${properties?.description ? `<p class="text-xs text-gray-600">${properties.description}</p>` : ""}
-            </div>
-          `)
-          .addTo(map.current)
-      })
+        // Add flood zones PMTiles source and layer
+        console.log("➕ Adding flood-zones PMTiles source...")
+        map.current.addSource("flood-zones", {
+          type: "vector",
+          url: "pmtiles:///data/el_gato.pmtiles",
+        })
 
-      // Change cursor on hover
-      map.current.on("mouseenter", "flood-zones-fill", () => {
-        if (map.current) map.current.getCanvas().style.cursor = "pointer"
-      })
+        // Add error handler for PMTiles source (only once)
+        map.current.on("error", (e: any) => {
+          console.error("🗺️ Map error:", e)
+        })
 
-      map.current.on("mouseleave", "flood-zones-fill", () => {
-        if (map.current) map.current.getCanvas().style.cursor = ""
-      })
+        // Add source loading handler (only once)
+        map.current.on("sourcedata", (e: any) => {
+          if (e.sourceId === "flood-zones") {
+            console.log("📊 Flood zones source data event:", e)
+          }
+        })
 
-      setMapLoaded(true)
+        console.log("➕ Adding flood-zones-fill layer...")
+        map.current.addLayer({
+          id: "flood-zones-fill",
+          type: "fill",
+          source: "flood-zones",
+          "source-layer": "combined_hazard_prioritized_4326",
+          paint: {
+            "fill-color": [
+              "match",
+              ["get", "peligrosid"],
+              "alta",
+              "hsla(221, 83%, 25%, 0.7)",
+              "media",
+              "hsla(221, 83%, 45%, 0.7)",
+              "baja",
+              "hsla(221, 83%, 65%, 0.7)",
+              "hsla(221, 83%, 55%, 0.7)", // default
+            ],
+            "fill-outline-color": [
+              "match",
+              ["get", "peligrosid"],
+              "alta",
+              "hsl(221, 83%, 15%)",
+              "media",
+              "hsl(221, 83%, 35%)",
+              "baja",
+              "hsl(221, 83%, 55%)",
+              "hsl(221, 83%, 45%)", // default
+            ],
+          },
+        })
+        // Set visibility immediately after adding
+        map.current.setLayoutProperty("flood-zones-fill", "visibility", layers.floodZones ? "visible" : "none")
 
-      // Pass map instance to parent
-      if (onMapLoad) {
-        onMapLoad(map.current)
+        // Add popup on click
+        map.current.on("click", "flood-zones-fill", (e: any) => {
+          if (!e.features || !e.features[0] || !map.current) return
+
+          const feature = e.features[0]
+          const properties = feature.properties
+
+          const riskLabels: Record<string, string> = {
+            baja: "Baja",
+            media: "Media",
+            alta: "Alta",
+          }
+
+          new window.maplibregl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(`
+              <div class="p-3">
+                <h3 class="font-semibold text-sm mb-2">Zona de Riesgo Hídrico</h3>
+                <p class="text-xs mb-1"><strong>Nivel:</strong> ${riskLabels[properties?.peligrosid] || "No especificado"}</p>
+                ${properties?.description ? `<p class="text-xs text-gray-600">${properties.description}</p>` : ""}
+              </div>
+            `)
+            .addTo(map.current)
+        })
+
+        // Change cursor on hover
+        map.current.on("mouseenter", "flood-zones-fill", () => {
+          if (map.current) map.current.getCanvas().style.cursor = "pointer"
+        })
+
+        map.current.on("mouseleave", "flood-zones-fill", () => {
+          if (map.current) map.current.getCanvas().style.cursor = ""
+        })
+
+        console.log("✅ Initial map setup completed")
+        setMapLoaded(true)
+
+        // Pass map instance to parent
+        if (onMapLoad) {
+          onMapLoad(map.current)
+        }
+      } catch (error) {
+        console.error("❌ Error in initial map setup:", error)
+        setMapLoaded(true) // Still set as loaded to prevent infinite retries
       }
     })
 
@@ -235,150 +218,123 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
         map.current = null
       }
     }
-  }, [mapLibreLoaded, basemap, onMapLoad])
+  }, [mapLibreLoaded, basemap, onMapLoad, layers.floodZones])
 
   // Handle layer visibility changes
   useEffect(() => {
     if (!map.current || !mapLoaded) return
 
-    const visibility = layers.floodZones ? "visible" : "none"
-    map.current.setLayoutProperty("flood-zones-fill", "visibility", visibility)
+    // Only set visibility if layers exist
+    const floodLayer = map.current.getLayer("flood-zones-fill")
+
+    if (floodLayer) {
+      const visibility = layers.floodZones ? "visible" : "none"
+      map.current.setLayoutProperty("flood-zones-fill", "visibility", visibility)
+    }
   }, [layers.floodZones, mapLoaded])
-
-  useEffect(() => {
-    if (!map.current || !mapLoaded) return
-
-    const visibility = layers.buildings ? "visible" : "none"
-    map.current.setLayoutProperty("buildings-fill", "visibility", visibility)
-  }, [layers.buildings, mapLoaded])
 
   // Handle basemap changes
   useEffect(() => {
     if (!map.current || !mapLoaded) return
 
+    console.log("🔄 Basemap change triggered:", basemap)
+    
+    // Safely check map state
+    const mapState = {
+      hasMap: !!map.current,
+      mapLoaded,
+      hasStyle: map.current && map.current.getStyle(),
+      currentSources: map.current && map.current.getStyle() ? Object.keys(map.current.getStyle().sources || {}) : []
+    }
+    console.log("📍 Current map state:", mapState)
+
     const mapStyles = {
-      light: {
-        version: 8,
-        sources: {
-          "osm-tiles": {
-            type: "raster",
-            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-            tileSize: 256,
-            attribution: "© OpenStreetMap contributors",
-          },
-        },
-        layers: [
-          {
-            id: "osm-tiles",
-            type: "raster",
-            source: "osm-tiles",
-          },
-        ],
-      },
-      satellite: {
-        version: 8,
-        sources: {
-          "satellite-tiles": {
-            type: "raster",
-            tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-            tileSize: 256,
-            attribution: "© Esri, Maxar, Earthstar Geographics",
-          },
-        },
-        layers: [
-          {
-            id: "satellite-tiles",
-            type: "raster",
-            source: "satellite-tiles",
-          },
-        ],
-      },
+      light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+      satellite: "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/arcgis_hybrid.json",
     }
 
-    // Store current layers data
-    const floodZonesData = map.current.getSource("flood-zones")?._data
-    const buildingsData = map.current.getSource("buildings")?._data
+    // Store current view state
+    const currentCenter = map.current.getCenter()
+    const currentZoom = map.current.getZoom()
 
     // Change style
+    console.log("🎨 Setting new style:", mapStyles[basemap])
     map.current.setStyle(mapStyles[basemap])
 
     // Re-add custom layers after style change
     map.current.once("styledata", () => {
       if (!map.current) return
 
-      // Re-add flood zones
-      if (floodZonesData) {
-        map.current.addSource("flood-zones", {
-          type: "geojson",
-          data: floodZonesData,
-        })
+      console.log("🎨 Style loaded, re-adding custom layers...")
 
-        map.current.addLayer({
-          id: "flood-zones-fill",
-          type: "fill",
-          source: "flood-zones",
-          paint: {
-            "fill-color": [
-              "match",
-              ["get", "risk_level"],
-              "muy_baja",
-              "hsla(221, 83%, 85%, 0.6)",
-              "baja",
-              "hsla(221, 83%, 65%, 0.6)",
-              "media",
-              "hsla(221, 83%, 45%, 0.6)",
-              "alta",
-              "hsla(221, 83%, 25%, 0.6)",
-              "hsla(221, 83%, 55%, 0.6)", // default
-            ],
-            "fill-outline-color": [
-              "match",
-              ["get", "risk_level"],
-              "muy_baja",
-              "hsl(221, 83%, 75%)",
-              "baja",
-              "hsl(221, 83%, 55%)",
-              "media",
-              "hsl(221, 83%, 35%)",
-              "alta",
-              "hsl(221, 83%, 15%)",
-              "hsl(221, 83%, 45%)", // default
-            ],
-          },
-        })
-      }
+      try {
+        // Restore view state
+        map.current.setCenter(currentCenter)
+        map.current.setZoom(currentZoom)
 
-      // Re-add buildings
-      if (buildingsData) {
-        map.current.addSource("buildings", {
-          type: "geojson",
-          data: buildingsData,
-        })
+        // Ensure PMTiles protocol is registered
+        if (window.maplibregl && !window.maplibregl.getProtocol) {
+          const protocol = new Protocol()
+          window.maplibregl.addProtocol("pmtiles", protocol.tile)
+        }
 
-        map.current.addLayer({
-          id: "buildings-fill",
-          type: "fill",
-          source: "buildings",
-          paint: {
-            "fill-color": "hsl(0, 0%, 85%)",
-            "fill-outline-color": "hsl(0, 0%, 70%)",
-            "fill-opacity": 0.8,
-          },
-        })
-      }
+        // Wait a bit for the style to fully load before adding sources
+        setTimeout(() => {
+          if (!map.current) return
 
-      // Re-apply layer visibility
-      if (map.current.getLayer("flood-zones-fill")) {
-        const visibility = layers.floodZones ? "visible" : "none"
-        map.current.setLayoutProperty("flood-zones-fill", "visibility", visibility)
-      }
+          // Add flood zones PMTiles source and layer
+          if (!map.current.getSource("flood-zones")) {
+            console.log("➕ Adding flood-zones PMTiles source...")
+            map.current.addSource("flood-zones", {
+              type: "vector",
+              url: "pmtiles:///data/el_gato.pmtiles",
+            })
+          }
 
-      if (map.current.getLayer("buildings-fill")) {
-        const visibility = layers.buildings ? "visible" : "none"
-        map.current.setLayoutProperty("buildings-fill", "visibility", visibility)
+          if (!map.current.getLayer("flood-zones-fill")) {
+            console.log("➕ Adding flood-zones-fill layer...")
+            map.current.addLayer({
+              id: "flood-zones-fill",
+              type: "fill",
+              source: "flood-zones",
+              "source-layer": "combined_hazard_prioritized_4326",
+              paint: {
+                "fill-color": [
+                  "match",
+                  ["get", "peligrosid"],
+                  "alta",
+                  "hsla(221, 83%, 25%, 0.7)",
+                  "media",
+                  "hsla(221, 83%, 45%, 0.7)",
+                  "baja",
+                  "hsla(221, 83%, 65%, 0.7)",
+                  "hsla(221, 83%, 55%, 0.7)", // default
+                ],
+                "fill-outline-color": [
+                  "match",
+                  ["get", "peligrosid"],
+                  "alta",
+                  "hsl(221, 83%, 15%)",
+                  "media",
+                  "hsl(221, 83%, 35%)",
+                  "baja",
+                  "hsl(221, 83%, 55%)",
+                  "hsl(221, 83%, 45%)", // default
+                ],
+              },
+            })
+            // Set visibility immediately after adding
+            map.current.setLayoutProperty("flood-zones-fill", "visibility", layers.floodZones ? "visible" : "none")
+          }
+
+          console.log("✅ Basemap change completed successfully")
+        }, 100) // Small delay to ensure style is fully loaded
+
+      } catch (error) {
+        console.error("❌ Error adding layers after basemap change:", error)
       }
     })
-  }, [basemap, mapLoaded])
+  }, [basemap, mapLoaded, layers.floodZones])
 
   if (!mapLibreLoaded) {
     return (

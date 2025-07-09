@@ -9,9 +9,8 @@ import { Switch } from "@/components/ui/switch"
 interface MapLegendControlProps {
   layers: {
     floodZones: boolean
-    buildings: boolean
   }
-  onLayerChange: (layers: { floodZones: boolean; buildings: boolean }) => void
+  onLayerChange: (layers: { floodZones: boolean }) => void
   basemap: "light" | "satellite"
   onBasemapChange: (basemap: "light" | "satellite") => void
 }
@@ -23,14 +22,11 @@ export default function MapLegendControl({ layers, onLayerChange, basemap, onBas
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
-      if (window.innerWidth < 768) {
-        setIsExpanded(false) // Collapse by default on mobile
-      }
     }
-
+    
     checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   const toggleLayer = (layerName: keyof typeof layers) => {
@@ -41,31 +37,38 @@ export default function MapLegendControl({ layers, onLayerChange, basemap, onBas
   }
 
   return (
-    <div className="map-legend">
-      <Card className="w-80 shadow-lg">
-        <CardContent className="p-3 md:p-4">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3 md:mb-4">
+    <div className="absolute top-4 left-4 z-10">
+      <Card className="w-80 shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+        <CardContent className="p-4">
+          {/* Header with expand/collapse */}
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Layers className="h-4 w-4" />
-              <h3 className="font-semibold text-sm">Controles</h3>
+              <Layers className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Controles del Mapa</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="h-6 w-6 p-0">
-              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="h-6 w-6 p-0"
+            >
+              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>
 
           {isExpanded && (
             <>
-              {/* Basemap Controls */}
-              <div className="mb-4 md:mb-6 basemap-control">
-                <h4 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Mapa Base</h4>
-                <div className="flex gap-2">
+              {/* Basemap Selection */}
+              <div className="space-y-3 mb-4">
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Estilo de Mapa
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant={basemap === "light" ? "default" : "outline"}
                     size="sm"
                     onClick={() => onBasemapChange("light")}
-                    className="flex-1 text-xs"
+                    className="text-xs h-8"
                   >
                     <Map className="h-3 w-3 mr-1" />
                     Claro
@@ -74,7 +77,7 @@ export default function MapLegendControl({ layers, onLayerChange, basemap, onBas
                     variant={basemap === "satellite" ? "default" : "outline"}
                     size="sm"
                     onClick={() => onBasemapChange("satellite")}
-                    className="flex-1 text-xs"
+                    className="text-xs h-8"
                   >
                     <Satellite className="h-3 w-3 mr-1" />
                     Satélite
@@ -82,7 +85,7 @@ export default function MapLegendControl({ layers, onLayerChange, basemap, onBas
                 </div>
               </div>
 
-              {/* Layer Controls */}
+              {/* Layers */}
               <div className="space-y-3 md:space-y-4">
                 <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Capas de Información
@@ -100,47 +103,23 @@ export default function MapLegendControl({ layers, onLayerChange, basemap, onBas
                       <div className="flex items-center gap-2 text-xs">
                         <div
                           className="w-4 h-3 rounded-sm"
-                          style={{ backgroundColor: "hsla(221, 83%, 85%, 0.8)" }}
+                          style={{ backgroundColor: "hsla(221, 83%, 25%, 0.7)" }}
                         ></div>
-                        <span>Muy baja a nula</span>
+                        <span>Alta</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs">
                         <div
                           className="w-4 h-3 rounded-sm"
-                          style={{ backgroundColor: "hsla(221, 83%, 65%, 0.8)" }}
-                        ></div>
-                        <span>Baja</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <div
-                          className="w-4 h-3 rounded-sm"
-                          style={{ backgroundColor: "hsla(221, 83%, 45%, 0.8)" }}
+                          style={{ backgroundColor: "hsla(221, 83%, 45%, 0.7)" }}
                         ></div>
                         <span>Media</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs">
                         <div
                           className="w-4 h-3 rounded-sm"
-                          style={{ backgroundColor: "hsla(221, 83%, 25%, 0.8)" }}
+                          style={{ backgroundColor: "hsla(221, 83%, 65%, 0.7)" }}
                         ></div>
-                        <span>Alta</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Buildings Layer */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium cursor-pointer">Edificaciones</label>
-                    <Switch checked={layers.buildings} onCheckedChange={() => toggleLayer("buildings")} />
-                  </div>
-
-                  {layers.buildings && (
-                    <div className="ml-2">
-                      <div className="flex items-center gap-2 text-xs">
-                        <div className="w-4 h-3 rounded-sm bg-gray-300 border border-gray-400"></div>
-                        <span>Huellas de Edificios</span>
+                        <span>Baja</span>
                       </div>
                     </div>
                   )}
