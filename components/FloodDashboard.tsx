@@ -189,16 +189,6 @@ export default function FloodDashboard() {
                 className="h-8 object-contain logo-container"
               />
             </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-2">
-              <Link href="/acerca">
-                <Button variant="outline" size="sm" className="text-xs bg-transparent">
-                  <span className="hidden sm:inline">Acerca del Proyecto</span>
-                  <span className="sm:hidden">Info</span>
-                </Button>
-              </Link>
-            </div>
           </div>
         </div>
       </header>
