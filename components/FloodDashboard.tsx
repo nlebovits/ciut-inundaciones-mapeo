@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Info, Menu, X, Plus, Minus } from "lucide-react"
+import { Info, Menu, X, HelpCircle } from "lucide-react"
 import { type CallBackProps, STATUS, type Step } from "react-joyride"
 import MapControlPanel from "./MapControlPanel"
 
@@ -54,14 +54,14 @@ const tutorialSteps: Step[] = [
     placement: "right",
   },
   {
-    target: ".map-controls",
+    target: ".tutorial-button",
     content: (
       <div>
-        <h3 className="font-semibold mb-2">Controles del Mapa</h3>
-        <p>Usa estos botones para hacer zoom y acceder al tutorial.</p>
+        <h3 className="font-semibold mb-2">Tutorial</h3>
+        <p>Haz clic en este botón para acceder al tutorial interactivo y aprender a usar el mapa.</p>
       </div>
     ),
-    placement: "left",
+    placement: "right",
   },
   {
     target: ".maplibregl-ctrl-geolocate",
@@ -114,18 +114,6 @@ export default function FloodDashboard() {
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRunTutorial(false)
       localStorage.setItem("flood-dashboard-tutorial", "true")
-    }
-  }
-
-  const handleZoomIn = () => {
-    if (mapInstance) {
-      mapInstance.zoomIn()
-    }
-  }
-
-  const handleZoomOut = () => {
-    if (mapInstance) {
-      mapInstance.zoomOut()
     }
   }
 
@@ -206,31 +194,16 @@ export default function FloodDashboard() {
         <div className="flex-1 map-container relative">
           <FloodMap layers={layers} basemap={basemap} onMapLoad={setMapInstance} />
 
-          {/* Floating Map Controls */}
-          <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 map-controls">
+          {/* Tutorial Button - Top Left */}
+          <div className="absolute top-4 left-4 z-10 tutorial-button">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setRunTutorial(true)}
               className="bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
+              title="Iniciar tutorial"
             >
-              <Info className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleZoomIn}
-              className="bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleZoomOut}
-              className="bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
-            >
-              <Minus className="w-4 h-4" />
+              <HelpCircle className="w-4 h-4" />
             </Button>
           </div>
         </div>

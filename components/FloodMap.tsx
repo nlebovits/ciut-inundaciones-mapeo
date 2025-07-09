@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Protocol } from "pmtiles"
-import Map, { Source, Layer, Popup, GeolocateControl, AttributionControl } from "react-map-gl/maplibre"
+import Map, { Source, Layer, Popup, GeolocateControl, NavigationControl } from "react-map-gl/maplibre"
 import "maplibre-gl/dist/maplibre-gl.css"
 import maplibregl from "maplibre-gl"
 
@@ -121,8 +121,9 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
           trackUserLocation={false}
           position="bottom-right"
         />
-        
-        <AttributionControl compact position="bottom-left" />
+        <NavigationControl
+          position="top-right"
+        />
 
         {layers.floodZones && (
           <Source
