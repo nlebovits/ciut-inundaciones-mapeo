@@ -26,17 +26,6 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
     maplibregl.addProtocol("pmtiles", protocol.tile)
     console.log("✅ DEBUG: PMTiles protocol registered successfully")
     
-    // Test PMTiles protocol
-    console.log("🧪 DEBUG: Testing PMTiles protocol...")
-    try {
-      const testUrl = "pmtiles:///data/la_plata.pmtiles"
-      console.log("🧪 DEBUG: Test URL:", testUrl)
-      // This will help us see if the protocol is working
-      console.log("🧪 DEBUG: Protocol registered successfully")
-    } catch (error) {
-      console.error("❌ DEBUG: PMTiles protocol test failed:", error)
-    }
-    
     return () => {
       console.log("🧹 DEBUG: Cleaning up PMTiles protocol...")
       maplibregl.removeProtocol("pmtiles")
@@ -260,7 +249,7 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
           <Source
             id="flood-zones"
             type="vector"
-            url="/data/la_plata.pmtiles"
+            url="pmtiles:///data/la_plata.pmtiles"
           >
             <Layer {...floodLayerStyle} source-layer="la_plata_pelig_2023_smoothed" />
           </Source>
@@ -270,7 +259,7 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
           <Source
             id="original-data"
             type="vector"
-            url="/data/la_plata_original.pmtiles"
+            url="pmtiles:///data/la_plata_original.pmtiles"
           >
             <Layer {...originalDataLayerStyle} source-layer="la_plata_pelig_2023_4326" />
           </Source>
