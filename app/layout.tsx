@@ -9,8 +9,8 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: "Dashboard de Zonas de Riesgo Hídrico - La Plata",
-  description: "Proyecto piloto para visualizar zonas de riesgo hídrico en La Plata",
+  title: "Dashboard de Zonas de Peligro Hídrico - La Plata",
+  description: "Proyecto piloto para visualizar zonas de peligro hídrico en La Plata",
     generator: 'v0.dev'
 }
 

@@ -6,7 +6,7 @@ export const floodZonesData = {
       type: "Feature" as const,
       properties: {
         risk_level: "alta",
-        description: "Zona de alto riesgo cerca del arroyo",
+        description: "Zona de alto peligro cerca del arroyo",
       },
       geometry: {
         type: "Polygon" as const,
@@ -25,7 +25,7 @@ export const floodZonesData = {
       type: "Feature" as const,
       properties: {
         risk_level: "media",
-        description: "Zona de riesgo medio en área urbana",
+        description: "Zona de peligro medio en área urbana",
       },
       geometry: {
         type: "Polygon" as const,
@@ -44,7 +44,7 @@ export const floodZonesData = {
       type: "Feature" as const,
       properties: {
         risk_level: "baja",
-        description: "Zona de bajo riesgo",
+        description: "Zona de bajo peligro",
       },
       geometry: {
         type: "Polygon" as const,
@@ -63,7 +63,7 @@ export const floodZonesData = {
       type: "Feature" as const,
       properties: {
         risk_level: "muy_baja",
-        description: "Zona de muy bajo a nulo riesgo",
+        description: "Zona de muy bajo a nulo peligro",
       },
       geometry: {
         type: "Polygon" as const,
@@ -82,7 +82,7 @@ export const floodZonesData = {
       type: "Feature" as const,
       properties: {
         risk_level: "baja",
-        description: "Zona de bajo riesgo residencial",
+        description: "Zona de bajo peligro residencial",
       },
       geometry: {
         type: "Polygon" as const,
@@ -102,7 +102,7 @@ export const floodZonesData = {
       type: "Feature" as const,
       properties: {
         risk_level: "media",
-        description: "Zona de riesgo medio en el centro",
+        description: "Zona de peligro medio en el centro",
       },
       geometry: {
         type: "Polygon" as const,
@@ -121,7 +121,7 @@ export const floodZonesData = {
       type: "Feature" as const,
       properties: {
         risk_level: "alta",
-        description: "Zona de alto riesgo residencial",
+        description: "Zona de alto peligro residencial",
       },
       geometry: {
         type: "Polygon" as const,

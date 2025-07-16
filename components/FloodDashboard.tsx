@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Info, Menu, X, HelpCircle } from "lucide-react"
+import { Info, Menu, X, HelpCircle, Github, Download } from "lucide-react"
 import { type CallBackProps, STATUS, type Step } from "react-joyride"
-import MapControlPanel from "./MapControlPanel"
+import FloatingLegend from "./FloatingLegend"
+import MapStyleSwitcher from "./MapStyleSwitcher"
 
 // Dynamically import the map to avoid SSR issues
 const FloodMap = dynamic(() => import("./FloodMap"), {
@@ -31,7 +32,7 @@ const tutorialSteps: Step[] = [
     target: "body",
     content: (
       <div>
-        <h2 className="text-xl font-semibold mb-3">¡Bienvenido al Dashboard de Riesgo Hídrico!</h2>
+        <h2 className="text-xl font-semibold mb-3">¡Bienvenido al Dashboard de Peligro Hídrico!</h2>
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
           <p className="text-yellow-800 font-semibold text-sm">⚠️ PROYECTO PILOTO</p>
           <p className="text-yellow-700 text-sm mt-1">
@@ -44,42 +45,72 @@ const tutorialSteps: Step[] = [
     placement: "center",
   },
   {
-    target: ".control-panel",
+    target: ".floating-legend",
     content: (
       <div>
-        <h3 className="font-semibold mb-2">Panel de Control</h3>
-        <p>Aquí puedes activar/desactivar las capas de información y cambiar el tipo de mapa base.</p>
+        <h3 className="font-semibold mb-2">Control de Capas</h3>
+        <p>Aquí puedes activar y desactivar las diferentes capas de información. Usa los interruptores para mostrar u ocultar las zonas de peligro hídrico y los datos originales.</p>
       </div>
     ),
     placement: "right",
   },
   {
-    target: ".tutorial-button",
+    target: ".map-style-switcher",
     content: (
       <div>
-        <h3 className="font-semibold mb-2">Tutorial</h3>
-        <p>Haz clic en este botón para acceder al tutorial interactivo y aprender a usar el mapa.</p>
+        <h3 className="font-semibold mb-2">Cambiar Estilo de Mapa</h3>
+        <p>Haz clic aquí para cambiar entre el mapa claro y la imagen satelital. Esto te ayuda a ver mejor los datos según el contexto que necesites.</p>
       </div>
     ),
-    placement: "right",
+    placement: "bottom",
+  },
+  {
+    target: "body",
+    content: (
+      <div>
+        <h3 className="font-semibold mb-2">Zoom y Navegación</h3>
+        <p>Usa la rueda del mouse para hacer zoom in y out, o haz clic en los botones + y - en la esquina superior derecha del mapa. También puedes hacer clic y arrastrar para moverte por el mapa.</p>
+      </div>
+    ),
+    placement: "center",
   },
   {
     target: ".maplibregl-ctrl-geolocate",
     content: (
       <div>
         <h3 className="font-semibold mb-2">Mi Ubicación</h3>
-        <p>Haz clic para centrar el mapa en tu ubicación actual.</p>
+        <p>Haz clic en este botón para centrar el mapa en tu ubicación actual. Esto te ayuda a ver el peligro hídrico en tu área.</p>
       </div>
     ),
     placement: "left",
+  },
+  {
+    target: ".download-link",
+    content: (
+      <div>
+        <h3 className="font-semibold mb-2">Descargar Datos</h3>
+        <p>Aquí podrás descargar los datos del mapa cuando estén disponibles. Los datos incluirán información detallada sobre las zonas de peligro hídrico.</p>
+      </div>
+    ),
+    placement: "bottom",
+  },
+  {
+    target: ".github-link",
+    content: (
+      <div>
+        <h3 className="font-semibold mb-2">Código del Proyecto</h3>
+        <p>Haz clic aquí para ver el código que procesa estos datos. Incluye todos los scripts y herramientas utilizadas para generar este mapa de peligro hídrico.</p>
+      </div>
+    ),
+    placement: "bottom",
   },
 ]
 
 export default function FloodDashboard() {
   const [runTutorial, setRunTutorial] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [layers, setLayers] = useState({
     floodZones: true,
+    originalData: false,
   })
   const [basemap, setBasemap] = useState<"light" | "satellite">("light")
   const [mapInstance, setMapInstance] = useState<any>(null)
@@ -89,23 +120,6 @@ export default function FloodDashboard() {
     const hasSeenTutorial = localStorage.getItem("flood-dashboard-tutorial")
     if (!hasSeenTutorial) {
       setRunTutorial(true)
-    }
-
-    // Handle mobile sidebar - delay to avoid hydration issues
-    const handleResize = () => {
-      const newSidebarState = window.innerWidth >= 768
-      setSidebarOpen(newSidebarState)
-    }
-
-    // Delay the initial resize check to avoid hydration mismatch
-    const timer = setTimeout(() => {
-      handleResize()
-    }, 0)
-
-    window.addEventListener("resize", handleResize)
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener("resize", handleResize)
     }
   }, [])
 
@@ -124,7 +138,7 @@ export default function FloodDashboard() {
         run={runTutorial}
         continuous={true}
         showProgress={true}
-        showSkipButton={true}
+        showSkipButton={false}
         callback={handleJoyrideCallback}
         styles={{
           options: {
@@ -139,22 +153,16 @@ export default function FloodDashboard() {
           close: "Cerrar",
           last: "Finalizar",
           next: "Siguiente",
-          skip: "Saltar tutorial",
         }}
       />
 
       {/* Professional Header */}
-      <header className="professional-header z-20 px-4 py-3">
+      <header className="professional-header z-20 px-4 pr-8 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
-            {/* Mobile menu button */}
-            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden">
-              {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </Button>
-
             {/* Title */}
             <div>
-              <h1 className="text-lg md:text-xl font-semibold text-foreground">Riesgo Hídrico: La Plata</h1>
+              <h1 className="text-lg md:text-xl font-semibold text-foreground">Peligro Hídrico: La Plata</h1>
             </div>
           </div>
 
@@ -162,49 +170,94 @@ export default function FloodDashboard() {
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-4">
               <img
+                src="https://ciut.fau.unlp.edu.ar/wp-content/uploads/sites/33/elementor/thumbs/LOGO-ciut--qjf1cejyso9ssxlxj3wfu5ypvjc9u6swvp6q60jpj4.png"
+                alt="CIUT"
+                className="h-11 object-contain logo-container"
+              />
+              <img
                 src="https://ciut.fau.unlp.edu.ar/wp-content/uploads/sites/33/elementor/thumbs/LOGO-FAU-recortado-qjf1cejysoaa71ckprs137f87b0uf6zf35uvw13f28.png"
                 alt="FAU"
-                className="h-8 object-contain logo-container"
+                className="h-16 object-contain logo-container"
               />
               <img
                 src="https://ing.unlp.edu.ar/wp-content/uploads/2022/10/logo.png"
                 alt="Ingeniería Hidráulica"
-                className="h-8 object-contain logo-container"
-              />
-              <img
-                src="https://ciut.fau.unlp.edu.ar/wp-content/uploads/sites/33/elementor/thumbs/LOGO-ciut--qjf1cejyso9ssxlxj3wfu5ypvjc9u6swvp6q60jpj4.png"
-                alt="CIUT"
-                className="h-8 object-contain logo-container"
+                className="h-16 object-contain logo-container"
               />
             </div>
           </div>
         </div>
       </header>
 
+      {/* Action Header - Second Level */}
+      <header className="border-b border-border bg-muted/30 px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 text-xs text-yellow-700 bg-yellow-50 px-2 py-1 rounded border border-yellow-200">
+              <span>⚠️</span>
+              <span>Proyecto Piloto - Los datos mostrados son preliminares y están en desarrollo continuo.</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {/* Tutorial Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setRunTutorial(true)}
+              className="tutorial-button flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent"
+              title="Iniciar tutorial"
+            >
+              <HelpCircle className="h-4 w-4" />
+              <span>Tutorial</span>
+            </Button>
+            
+            {/* Separator */}
+            <div className="w-px h-4 bg-border"></div>
+            
+            {/* GitHub Link */}
+            <a
+              href="https://github.com/nlebovits/ciut-inundaciones"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="github-link flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent no-underline"
+              title="Ver código del proyecto"
+            >
+              <Github className="h-4 w-4" />
+              <span>Ver Código</span>
+            </a>
+            
+            {/* Separator */}
+            <div className="w-px h-4 bg-border"></div>
+            
+            {/* Download Link */}
+            <a
+              href="/data/la_plata_datos.zip"
+              download="la_plata_datos.zip"
+              className="download-link flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent"
+              title="Descargar datos del mapa de peligro hídrico"
+            >
+              <Download className="h-4 w-4" />
+              <span>Descargar Datos</span>
+            </a>
+          </div>
+        </div>
+      </header>
+
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar Panel */}
-        {sidebarOpen && (
-          <div className="sidebar-panel w-80 md:w-96 flex-shrink-0 overflow-y-auto control-panel">
-            <MapControlPanel layers={layers} onLayerChange={setLayers} basemap={basemap} onBasemapChange={setBasemap} />
-          </div>
-        )}
-
         {/* Map Container */}
         <div className="flex-1 map-container relative">
           <FloodMap layers={layers} basemap={basemap} onMapLoad={setMapInstance} />
 
-          {/* Tutorial Button - Top Left */}
-          <div className="absolute top-4 left-4 z-10 tutorial-button">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setRunTutorial(true)}
-              className="bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
-              title="Iniciar tutorial"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </Button>
+          {/* Map Style Switcher - Top Left */}
+          <div className="absolute top-4 left-4 z-10 map-style-switcher">
+            <MapStyleSwitcher basemap={basemap} onBasemapChange={setBasemap} />
+          </div>
+
+          {/* Floating Legend - Bottom Left */}
+          <div className="absolute bottom-4 left-4 z-10 floating-legend">
+            <FloatingLegend layers={layers} onLayerChange={setLayers} />
           </div>
         </div>
       </div>

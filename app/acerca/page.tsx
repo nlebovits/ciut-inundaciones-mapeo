@@ -38,12 +38,12 @@ export default function AboutPage() {
             <h2 className="text-xl md:text-2xl font-serif font-semibold mb-4">Objetivo del Proyecto</h2>
             <p className="text-base md:text-lg leading-relaxed mb-4">
               Este dashboard tiene como objetivo proporcionar una herramienta interactiva para visualizar y analizar las
-              zonas de riesgo hídrico en La Plata. La plataforma permite a usuarios, investigadores y tomadores de
-              decisiones explorar de manera intuitiva la información geoespacial relacionada con inundaciones y riesgo
+              zonas de peligro hídrico en La Plata. La plataforma permite a usuarios, investigadores y tomadores de
+              decisiones explorar de manera intuitiva la información geoespacial relacionada con inundaciones y peligro
               hídrico en la ciudad.
             </p>
             <p className="text-base md:text-lg leading-relaxed">
-              A través de capas interactivas, los usuarios pueden examinar tanto las zonas de riesgo como la
+              A través de capas interactivas, los usuarios pueden examinar tanto las zonas de peligro como la
               infraestructura urbana, facilitando una mejor comprensión de la vulnerabilidad territorial ante eventos de
               inundación.
             </p>
@@ -107,10 +107,10 @@ export default function AboutPage() {
             <h2 className="text-2xl font-serif font-semibold mb-4">Metodología y Datos</h2>
             <p className="text-lg leading-relaxed mb-4">
               El proyecto integra datos geoespaciales de múltiples fuentes para crear una representación comprensiva del
-              riesgo hídrico urbano. Las capas de información incluyen:
+              peligro hídrico urbano. Las capas de información incluyen:
             </p>
             <ul className="list-disc list-inside text-lg leading-relaxed space-y-2 ml-4">
-              <li>Zonas de riesgo hídrico clasificadas por nivel de amenaza</li>
+              <li>Zonas de peligro hídrico clasificadas por nivel de amenaza</li>
               <li>Huellas de edificaciones y infraestructura urbana</li>
               <li>Cartografía base actualizada de La Plata</li>
             </ul>

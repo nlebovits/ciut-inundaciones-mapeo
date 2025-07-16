@@ -9,8 +9,9 @@ import { Switch } from "@/components/ui/switch"
 interface MapLegendControlProps {
   layers: {
     floodZones: boolean
+    originalData: boolean
   }
-  onLayerChange: (layers: { floodZones: boolean }) => void
+  onLayerChange: (layers: { floodZones: boolean; originalData: boolean }) => void
   basemap: "light" | "satellite"
   onBasemapChange: (basemap: "light" | "satellite") => void
 }
@@ -94,7 +95,7 @@ export default function MapLegendControl({ layers, onLayerChange, basemap, onBas
                 {/* Flood Zones Layer */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium cursor-pointer">Zonas de Riesgo Hídrico</label>
+                    <label className="text-sm font-medium cursor-pointer">Zonas de Peligro Hídrico</label>
                     <Switch checked={layers.floodZones} onCheckedChange={() => toggleLayer("floodZones")} />
                   </div>
 
@@ -118,6 +119,40 @@ export default function MapLegendControl({ layers, onLayerChange, basemap, onBas
                         <div
                           className="w-4 h-3 rounded-sm"
                           style={{ backgroundColor: "hsla(221, 83%, 65%, 0.7)" }}
+                        ></div>
+                        <span>Baja</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Original Data Layer */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium cursor-pointer">Datos Originales</label>
+                    <Switch checked={layers.originalData} onCheckedChange={() => toggleLayer("originalData")} />
+                  </div>
+
+                  {layers.originalData && (
+                    <div className="ml-2 space-y-1">
+                      <div className="flex items-center gap-2 text-xs">
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: "hsla(330, 83%, 25%, 0.7)" }}
+                        ></div>
+                        <span>Alta</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: "hsla(330, 83%, 45%, 0.7)" }}
+                        ></div>
+                        <span>Media</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: "hsla(330, 83%, 65%, 0.7)" }}
                         ></div>
                         <span>Baja</span>
                       </div>
