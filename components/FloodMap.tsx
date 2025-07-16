@@ -260,7 +260,7 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
           <Source
             id="flood-zones"
             type="vector"
-            url="pmtiles:///data/la_plata.pmtiles"
+            url="/data/la_plata.pmtiles"
           >
             <Layer {...floodLayerStyle} source-layer="la_plata_pelig_2023_smoothed" />
           </Source>
@@ -270,7 +270,7 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
           <Source
             id="original-data"
             type="vector"
-            url="pmtiles:///data/la_plata_original.pmtiles"
+            url="/data/la_plata_original.pmtiles"
           >
             <Layer {...originalDataLayerStyle} source-layer="la_plata_pelig_2023_4326" />
           </Source>
