@@ -8,8 +8,9 @@ interface FloatingLegendProps {
   layers: {
     floodZones: boolean
     originalData: boolean
+    cadastre: boolean
   }
-  onLayerChange: (layers: { floodZones: boolean; originalData: boolean }) => void
+  onLayerChange: (layers: { floodZones: boolean; originalData: boolean; cadastre: boolean }) => void
 }
 
 export default function FloatingLegend({ layers, onLayerChange }: FloatingLegendProps) {
@@ -92,6 +93,26 @@ export default function FloatingLegend({ layers, onLayerChange }: FloatingLegend
                   style={{ backgroundColor: "hsla(330, 83%, 65%, 0.7)" }}
                 ></div>
                 <span>Baja</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Cadastre Layer */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium cursor-pointer">Catastro</label>
+            <Switch checked={layers.cadastre} onCheckedChange={() => toggleLayer("cadastre")} />
+          </div>
+
+          {layers.cadastre && (
+            <div className="space-y-2 pl-4 border-l-2 border-gray-100">
+              <div className="flex items-center gap-3 text-xs">
+                <div
+                  className="w-4 h-1 border"
+                  style={{ backgroundColor: "hsl(0, 0%, 30%)" }}
+                ></div>
+                <span>Límites de Parcelas</span>
               </div>
             </div>
           )}

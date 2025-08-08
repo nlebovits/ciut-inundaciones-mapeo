@@ -5,19 +5,24 @@ import { Protocol } from "pmtiles"
 import Map, { Source, Layer, Popup, GeolocateControl, NavigationControl } from "react-map-gl/maplibre"
 import "maplibre-gl/dist/maplibre-gl.css"
 import maplibregl from "maplibre-gl"
+import { createMapLibreGlMapController } from "@maptiler/geocoding-control/maplibregl-controller"
+import { GeocodingControl } from "@maptiler/geocoding-control/react"
+import "@maptiler/geocoding-control/style.css"
 
 interface FloodMapProps {
   layers: {
     floodZones: boolean
     originalData: boolean
+    cadastre: boolean
   }
-  basemap: "light" | "satellite"
+  basemap: string
   onMapLoad?: (map: any) => void
 }
 
 export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) {
   const [mapInstance, setMapInstance] = useState<any>(null)
   const [popupInfo, setPopupInfo] = useState<any>(null)
+  const [mapController, setMapController] = useState<any>(null)
 
   // Register PMTiles protocol once
   useEffect(() => {
@@ -33,10 +38,33 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
     }
   }, [])
 
-  // Map styles
-  const mapStyles = {
-    light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-    satellite: "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/arcgis_hybrid.json",
+  // Set up map controller when map instance is available
+  useEffect(() => {
+    if (mapInstance) {
+      console.log("🗺️ DEBUG: Setting up map controller for geocoding...")
+      setMapController(createMapLibreGlMapController(mapInstance, maplibregl))
+    }
+  }, [mapInstance])
+
+  // Map styles - MapTiler basemaps
+  const getMapStyle = (styleName: string) => {
+    const apiKey = process.env.NEXT_PUBLIC_MAPTILER_KEY
+    if (!apiKey) {
+      console.warn('MapTiler API key not found. Please add NEXT_PUBLIC_MAPTILER_KEY to your .env file.')
+      // Fallback to free basemaps
+      return styleName === 'Hybrid' 
+        ? "https://raw.githubusercontent.com/go2garret/maps/main/src/assets/json/arcgis_hybrid.json"
+        : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+    }
+    
+    // Convert style name to MapTiler format
+    const styleMap: Record<string, string> = {
+      'DataVisualization': 'dataviz',
+      'Hybrid': 'hybrid'
+    }
+    
+    const maptilerStyle = styleMap[styleName] || 'dataviz'
+    return `https://api.maptiler.com/maps/${maptilerStyle}/style.json?key=${apiKey}`
   }
 
   const floodLayerStyle = {
@@ -75,9 +103,10 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
   useEffect(() => {
     console.log("🔍 DEBUG: Layer visibility updated:", {
       floodZones: layers.floodZones,
-      originalData: layers.originalData
+      originalData: layers.originalData,
+      cadastre: layers.cadastre
     })
-  }, [layers.floodZones, layers.originalData])
+  }, [layers.floodZones, layers.originalData, layers.cadastre])
 
   // Debug logging for map instance and sources
   useEffect(() => {
@@ -135,6 +164,18 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
     },
     layout: {
       visibility: layers.originalData ? "visible" : "none" as "visible" | "none"
+    }
+  }
+
+  const cadastreLayerStyle = {
+    id: "cadastre-outline",
+    type: "line" as const,
+    paint: {
+      "line-color": "hsl(0, 0%, 30%)", // Darker grey color for better visibility
+      "line-width": 1,
+    },
+    layout: {
+      visibility: layers.cadastre ? "visible" : "none" as "visible" | "none"
     }
   }
 
@@ -221,7 +262,7 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
     <div className="w-full h-full">
       <Map
         mapLib={maplibregl}
-        mapStyle={mapStyles[basemap]}
+        mapStyle={getMapStyle(basemap)}
         initialViewState={{
           longitude: -57.954722,
           latitude: -34.921556,
@@ -231,7 +272,8 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
         onLoad={handleMapLoad}
         interactiveLayerIds={[
           ...(layers.floodZones ? ["flood-zones-fill"] : []),
-          ...(layers.originalData ? ["original-data-fill"] : [])
+          ...(layers.originalData ? ["original-data-fill"] : []),
+          ...(layers.cadastre ? ["cadastre-outline"] : [])
         ]}
       >
         <GeolocateControl
@@ -242,8 +284,46 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
           position="bottom-right"
         />
         <NavigationControl
-          position="top-right"
+          position="bottom-right"
         />
+
+        {/* Address Search - Top Right */}
+        <div
+          className="geocoding"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            zIndex: 1000,
+          }}
+        >
+          <GeocodingControl
+            apiKey={process.env.NEXT_PUBLIC_MAPTILER_KEY}
+            bbox={[-58.5, -35.5, -57.5, -34.5]} // Bounding box for La Plata region
+            markerOnSelected={false}
+            placeholder="Buscar dirección en La Plata..."
+            proximity={[
+              {
+                type: 'fixed',
+                coordinates: [-57.954722, -34.921556], // Center of La Plata
+              },
+            ]}
+            onPick={({ feature }) => {
+              if (feature && mapInstance) {
+                console.log("📍 Address selected:", feature.place_name)
+                mapInstance.easeTo({
+                  center: feature.center,
+                  zoom: 16,
+                  duration: 1000
+                })
+              }
+            }}
+            onResponse={(response) => {
+              console.log("🔍 Geocoding response:", response)
+              console.log("🔑 API Key status:", process.env.NEXT_PUBLIC_MAPTILER_KEY ? "Available" : "Missing")
+            }}
+          />
+        </div>
 
         {layers.floodZones && (
           <Source
@@ -262,6 +342,16 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
             url="pmtiles:///data/la_plata_original.pmtiles"
           >
             <Layer {...originalDataLayerStyle} source-layer="la_plata_pelig_2023_4326" />
+          </Source>
+        )}
+
+        {layers.cadastre && (
+          <Source
+            id="cadastre"
+            type="vector"
+            url="pmtiles:///data/la_plata_parcelas.pmtiles"
+          >
+            <Layer {...cadastreLayerStyle} source-layer="la_plata_parcelas" />
           </Source>
         )}
 

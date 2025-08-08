@@ -1,84 +1,95 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Map, Satellite, ChevronDown } from "lucide-react"
+import { useState, useEffect } from "react"
+import Image from "next/image"
 
 interface MapStyleSwitcherProps {
-  basemap: "light" | "satellite"
-  onBasemapChange: (basemap: "light" | "satellite") => void
+  basemap: string
+  onBasemapChange: (basemap: string) => void
 }
 
 export default function MapStyleSwitcher({ basemap, onBasemapChange }: MapStyleSwitcherProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
-  const basemapOptions = [
+  type BaseMap = {
+    name: string
+    img: string
+    label: string
+  }
+
+  const baseMaps: BaseMap[] = [
     {
-      id: "light" as const,
-      label: "Mapa Claro",
-      icon: Map,
-      description: "Vista de mapa estándar",
+      name: 'DataVisualization',
+      img: 'https://cloud.maptiler.com/static/img/maps/dataviz.png',
+      label: 'Visualización de Datos'
     },
     {
-      id: "satellite" as const,
-      label: "Imagen Satelital",
-      icon: Satellite,
-      description: "Vista satelital",
+      name: 'Hybrid',
+      img: 'https://cloud.maptiler.com/static/img/maps/hybrid.png',
+      label: 'Imagen Satelital'
     },
   ]
 
-  const currentOption = basemapOptions.find(option => option.id === basemap)
+  const currentBasemap = baseMaps.find(map => map.name === basemap) || baseMaps[0]
+  const otherBasemaps = baseMaps.filter(map => map.name !== basemap)
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🎨 MapStyleSwitcher Debug:', {
+      basemap,
+      currentBasemap: currentBasemap.name,
+      availableBasemaps: baseMaps.map(b => b.name),
+      otherBasemaps: otherBasemaps.map(b => b.name)
+    })
+  }, [basemap, currentBasemap, otherBasemaps])
+
+  const onClick = (selectedBasemap: BaseMap) => {
+    console.log('🎨 Switching basemap from', basemap, 'to', selectedBasemap.name)
+    onBasemapChange(selectedBasemap.name)
+  }
 
   return (
-    <div className="relative">
-      {/* Main Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setIsOpen(!isOpen)}
-        className="bg-white/95 backdrop-blur-sm shadow-lg hover:bg-white border-gray-200 min-w-[140px] justify-between"
-      >
-        <div className="flex items-center space-x-2">
-          {currentOption && <currentOption.icon className="h-4 w-4" />}
-          <span className="text-sm font-medium">{currentOption?.label}</span>
-        </div>
-        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-      </Button>
+    <div
+      className="relative bg-white/95 backdrop-blur-sm shadow-md rounded-lg border border-gray-300 p-1"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Image
+        src={currentBasemap.img}
+        alt={currentBasemap.label}
+        width={60}
+        height={60}
+        title={currentBasemap.label}
+        className="cursor-pointer w-14 h-14 rounded border border-gray-300"
+      />
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <div className="p-2 space-y-1">
-            {basemapOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => {
-                  onBasemapChange(option.id)
-                  setIsOpen(false)
-                }}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-left transition-colors ${
-                  basemap === option.id
-                    ? "bg-primary/10 text-primary border border-primary/20"
-                    : "hover:bg-gray-50 text-gray-700"
-                }`}
-              >
-                <option.icon className="h-4 w-4 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="text-sm font-medium">{option.label}</div>
-                  <div className="text-xs text-gray-500">{option.description}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Backdrop to close dropdown */}
-      {isOpen && (
+      {otherBasemaps.length > 0 && (
         <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
+          className={`absolute flex flex-row items-center gap-2 transition-all duration-300 ${
+            isHovered
+              ? 'translate-x-16 opacity-100 pointer-events-auto'
+              : 'translate-x-0 opacity-0 pointer-events-none'
+          }`}
+          style={{
+            left: '4rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            minWidth: '60px',
+          }}
+        >
+          {otherBasemaps.map((map) => (
+            <Image
+              key={map.name}
+              src={map.img}
+              alt={map.label}
+              width={60}
+              height={60}
+              title={map.label}
+              onClick={() => onClick(map)}
+              className="cursor-pointer w-14 h-14 rounded border border-gray-300 hover:border-gray-500 bg-white/95 backdrop-blur-sm shadow-md flex-shrink-0"
+            />
+          ))}
+        </div>
       )}
     </div>
   )

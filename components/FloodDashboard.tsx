@@ -60,10 +60,20 @@ const tutorialSteps: Step[] = [
     content: (
       <div>
         <h3 className="font-semibold mb-2">Cambiar Estilo de Mapa</h3>
-        <p>Haz clic aquí para cambiar entre el mapa claro y la imagen satelital. Esto te ayuda a ver mejor los datos según el contexto que necesites.</p>
+        <p>Pasa el cursor sobre esta imagen para ver las opciones de estilo disponibles. Puedes cambiar entre la vista de visualización de datos y la imagen satelital. Haz clic en cualquier opción para cambiar el estilo del mapa.</p>
       </div>
     ),
     placement: "bottom",
+  },
+  {
+    target: ".geocoding",
+    content: (
+      <div>
+        <h3 className="font-semibold mb-2">Buscar Direcciones</h3>
+        <p>Usa esta caja de búsqueda para encontrar una dirección específica en La Plata. Escribe una dirección y selecciona una opción de la lista para navegar directamente a esa ubicación en el mapa.</p>
+      </div>
+    ),
+    placement: "bottom-start",
   },
   {
     target: "body",
@@ -112,8 +122,9 @@ export default function FloodDashboard() {
   const [layers, setLayers] = useState({
     floodZones: true,
     originalData: false,
+    cadastre: false,
   })
-  const [basemap, setBasemap] = useState<"light" | "satellite">("light")
+  const [basemap, setBasemap] = useState<string>("DataVisualization")
   const [mapInstance, setMapInstance] = useState<any>(null)
 
   useEffect(() => {
@@ -248,10 +259,10 @@ export default function FloodDashboard() {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="/data/la_plata_original.geojson">
+                  <SelectItem value="https://github.com/nlebovits/ciut-inundaciones-mapeo/raw/refs/heads/main/public/data/la_plata_original.geojson">
                     Datos Originales
                   </SelectItem>
-                  <SelectItem value="/data/la_plata.geojson">
+                  <SelectItem value="https://github.com/nlebovits/ciut-inundaciones-mapeo/raw/refs/heads/main/public/data/la_plata.geojson">
                     Datos Suavizados
                   </SelectItem>
                 </SelectContent>
