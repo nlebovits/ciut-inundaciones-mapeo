@@ -180,7 +180,7 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
         // Try to get a sample feature to inspect properties
         try {
           const features = event.target.querySourceFeatures('flood-zones', {
-            sourceLayer: 'la_plata_pelig_2023_smoothed',
+            sourceLayer: 'la_plata_pelig_2023_final',
             limit: 1
           })
           if (features.length > 0) {
@@ -251,7 +251,7 @@ export default function FloodMap({ layers, basemap, onMapLoad }: FloodMapProps) 
             type="vector"
             url="pmtiles:///data/la_plata.pmtiles"
           >
-            <Layer {...floodLayerStyle} source-layer="la_plata_pelig_2023_smoothed" />
+            <Layer {...floodLayerStyle} source-layer="la_plata_pelig_2023_final" />
           </Source>
         )}
 

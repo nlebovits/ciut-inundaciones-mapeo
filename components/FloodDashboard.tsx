@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Info, Menu, X, HelpCircle, Github, Download } from "lucide-react"
 import { type CallBackProps, STATUS, type Step } from "react-joyride"
 import FloatingLegend from "./FloatingLegend"
@@ -89,7 +90,7 @@ const tutorialSteps: Step[] = [
     content: (
       <div>
         <h3 className="font-semibold mb-2">Descargar Datos</h3>
-        <p>Aquí podrás descargar los datos del mapa cuando estén disponibles. Los datos incluirán información detallada sobre las zonas de peligro hídrico.</p>
+        <p>Haz clic aquí para descargar los datos del mapa. Puedes elegir entre los datos originales o los datos suavizados en formato GeoJSON.</p>
       </div>
     ),
     placement: "bottom",
@@ -230,16 +231,32 @@ export default function FloodDashboard() {
             {/* Separator */}
             <div className="w-px h-4 bg-border"></div>
             
-            {/* Download Link */}
-            <a
-              href="/data/la_plata_datos.zip"
-              download="la_plata_datos.zip"
-              className="download-link flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent"
-              title="Descargar datos del mapa de peligro hídrico"
-            >
-              <Download className="h-4 w-4" />
-              <span>Descargar Datos</span>
-            </a>
+            {/* Download Dropdown */}
+            <div className="download-link">
+              <Select onValueChange={(value) => {
+                const link = document.createElement('a')
+                link.href = value
+                link.download = value.split('/').pop() || ''
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+              }}>
+                <SelectTrigger className="w-auto h-auto p-0 border-0 bg-transparent hover:bg-accent rounded-md">
+                  <div className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    <Download className="h-4 w-4" />
+                    <span>Descargar Datos</span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="/data/la_plata_original.geojson">
+                    Datos Originales
+                  </SelectItem>
+                  <SelectItem value="/data/la_plata.geojson">
+                    Datos Suavizados
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </header>
