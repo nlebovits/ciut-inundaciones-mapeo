@@ -259,10 +259,10 @@ export default function FloodDashboard() {
                   </div>
                 </SelectTrigger>
                 <SelectContent className="z-[1100]">
-                  <SelectItem value="https://media.githubusercontent.com/media/nlebovits/ciut-inundaciones-mapeo/main/public/data/la_plata_original.geojson">
+                  <SelectItem value="/api/download/la_plata_original.geojson">
                     Datos Originales
                   </SelectItem>
-                  <SelectItem value="https://media.githubusercontent.com/media/nlebovits/ciut-inundaciones-mapeo/main/public/data/la_plata.geojson">
+                  <SelectItem value="/api/download/la_plata.geojson">
                     Datos Suavizados
                   </SelectItem>
                 </SelectContent>
